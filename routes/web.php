@@ -5,11 +5,9 @@ use Inertia\Inertia;
 use App\Http\Controllers\Auth\AuthController;
 use Illuminate\Http\Request;
 
-Route::get('/', function (Request $request) {
-    return Inertia::render('Home', [
-        'user' => $request->user() ? $request->user()->load(['household', 'role']) : null,
-    ]);
-})->middleware('auth')->name('home');
+use App\Http\Controllers\DashboardController;
+
+Route::get('/', [DashboardController::class, 'index'])->middleware('auth')->name('dashboard');
 
 Route::get('/register', function () {
     return Inertia::render('auth/Register');

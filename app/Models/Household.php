@@ -12,4 +12,14 @@ class Household extends Model
     {
         return $this->hasMany(User::class);
     }
+    
+    public function incomes()
+    {
+        return $this->hasMany(Income::class);
+    }
+    
+    public function expenses()
+    {
+        return $this->hasMany(Expense::class);
+    }
 }
