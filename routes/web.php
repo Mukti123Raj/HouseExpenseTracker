@@ -2,7 +2,24 @@
 
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Controllers\Auth\AuthController;
+use Illuminate\Http\Request;
 
-Route::get('/', function () {
-    return Inertia::render('Home');
-})->name('home');
+Route::get('/', function (Request $request) {
+    return Inertia::render('Home', [
+        'user' => $request->user() ? $request->user()->load(['household', 'role']) : null,
+    ]);
+})->middleware('auth')->name('home');
+
+Route::get('/register', function () {
+    return Inertia::render('auth/Register');
+})->middleware('guest')->name('register');
+
+Route::get('/login', function () {
+    return Inertia::render('auth/Login');
+})->middleware('guest')->name('login');
+
+// Authentication Routes
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
