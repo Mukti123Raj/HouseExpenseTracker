@@ -59,4 +59,4 @@ COPY docker.supervisord.conf /etc/supervisord.conf
 
 # 15. Expose Port & Run
 EXPOSE 8080
-CMD /bin/sh -c "php artisan migrate --force && php artisan db:seed --class=RoleSeeder --force && /usr/bin/supervisord -c /etc/supervisord.conf"
+CMD /bin/sh -c "php artisan config:cache && php artisan migrate --force && php artisan db:seed --class=RoleSeeder --force && /usr/bin/supervisord -c /etc/supervisord.conf"
