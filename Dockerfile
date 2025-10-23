@@ -1,5 +1,4 @@
 # 1. Base PHP Image
-user www-data;
 FROM php:8.2-fpm-alpine
 
 # Set working directory
