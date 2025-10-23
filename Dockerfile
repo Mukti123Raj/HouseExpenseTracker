@@ -1,76 +1,54 @@
-# Use PHP 8.2 FPM Alpine as base image
+# 1. Base PHP Image
 FROM php:8.2-fpm-alpine
 
-# Install system dependencies
+# Set working directory
+WORKDIR /var/www/html
+
+# 2. Install System Dependencies
+# Install Nginx, Supervisor, Git, and other build-time dependencies
 RUN apk add --no-cache \
     nginx \
     supervisor \
     git \
     curl \
-    zip \
     unzip \
-    libzip-dev \
-    postgresql-dev \
-    oniguruma-dev \
-    libxml2-dev \
-    freetype-dev \
-    libjpeg-turbo-dev \
-    libpng-dev \
-    icu-dev
-
-# Install PHP extensions
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install \
-    pdo_pgsql \
     zip \
-    bcmath \
-    gd \
-    intl \
-    mbstring \
-    xml
+    libzip-dev \
+    postgresql-dev \ # For pgsql
+    && docker-php-ext-install pdo pdo_pgsql zip bcmath \ # Install PHP extensions
+    && rm -rf /var/cache/apk/*
 
-# Install Composer globally
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+# 3. Install Composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Install Node.js v20 and npm
+# 4. Install Node.js & NPM
 RUN apk add --no-cache nodejs npm
 
-# Set working directory
-WORKDIR /var/www/html
+# 5. Copy ALL Application Files
+# This is the most important change. Copy everything first.
+COPY . /var/www/html/
 
-# Copy composer files first for better caching
-COPY composer.json composer.lock ./
+# 6. Set up a build-time .env file
+# We need this for 'artisan' commands to run during the build.
+# Render's variables will override this at runtime.
+RUN cp .env.example .env
+RUN php artisan key:generate --ansi
 
-# Install PHP dependencies
+# 7. Install PHP & NPM Dependencies
+# Now these commands will work because 'artisan' and 'package.json' exist.
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress
-
-# Copy package files
-COPY package*.json ./
-
-# Install Node dependencies
-RUN npm ci --only=production
-
-# Copy all project files
-COPY . .
-
-# Build frontend assets
+RUN npm install
 RUN npm run build
 
-# Set correct permissions for Laravel
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+# 8. Set Production Permissions
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
+    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Copy Nginx configuration
+# 9. Configure Nginx & Supervisor
 COPY docker.nginx.conf /etc/nginx/http.d/default.conf
-
-# Copy Supervisor configuration
 COPY docker.supervisord.conf /etc/supervisord.conf
 
-# Create necessary directories
-RUN mkdir -p /var/run/php-fpm \
-    && mkdir -p /var/log/supervisor
-
-# Expose port 8080
+# 10. Expose Port & Run
+# Render connects to port 8080 by default for Nginx
 EXPOSE 8080
-
-# Set the command to run supervisor
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
