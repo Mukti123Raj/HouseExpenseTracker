@@ -5,7 +5,6 @@ FROM php:8.2-fpm-alpine
 WORKDIR /var/www/html
 
 # 2. Install System Dependencies
-# Install Nginx, Supervisor, Git, and other build-time dependencies
 RUN apk add --no-cache \
     nginx \
     supervisor \
@@ -27,30 +26,35 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 RUN apk add --no-cache nodejs npm
 
 # 6. Copy ALL Application Files
-# This is the most important change. Copy everything first.
 COPY . /var/www/html/
 
-# 7. Set up a build-time .env file
-# We need this for 'artisan' commands to run during the build.
-# Render's variables will override this at runtime.
+# 7. Install PHP Dependencies (WITHOUT scripts)
+# This creates the vendor/autoload.php file but doesn't run artisan
+RUN composer install --no-dev --no-autoloader --no-scripts --no-interaction --no-progress
+
+# 8. Create autoloader
+RUN composer dump-autoload --optimize --no-scripts
+
+# 9. Set up .env file and generate key
+# This works now because vendor/autoload.php exists
 RUN cp .env.example .env
 RUN php artisan key:generate --ansi
 
-# 8. Install PHP & NPM Dependencies
-# Now these commands will work because 'artisan' and 'package.json' exist.
-RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress
+# 10. Run composer scripts (now that key exists)
+RUN composer run-script post-autoload-dump --no-dev
+
+# 11. Install NPM Dependencies
 RUN npm install
 RUN npm run build
 
-# 9. Set Production Permissions
+# 12. Set Production Permissions
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# 10. Configure Nginx & Supervisor
+# 13. Configure Nginx & Supervisor
 COPY docker.nginx.conf /etc/nginx/http.d/default.conf
 COPY docker.supervisord.conf /etc/supervisord.conf
 
-# 11. Expose Port & Run
-# Render connects to port 8080 by default for Nginx
+# 14. Expose Port & Run
 EXPOSE 8080
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
