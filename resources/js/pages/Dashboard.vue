@@ -22,24 +22,41 @@
           <ActionButton 
             buttonText="Add Income" 
             buttonColor="bg-green-600 hover:bg-green-700 focus:ring-green-500" 
-            :latestTransaction="latestIncome" 
+            :latestTransaction="latestIncome"
+            @click="showIncomeModal = true"
           />
           <ActionButton 
             buttonText="Create Expense" 
             buttonColor="bg-red-600 hover:bg-red-700 focus:ring-red-500" 
-            :latestTransaction="latestExpense" 
+            :latestTransaction="latestExpense"
+            @click="showExpenseModal = true"
           />
         </div>
       </div>
     </div>
+
+    <!-- Income Modal -->
+    <Modal :show="showIncomeModal" title="Add New Income" @close="showIncomeModal = false">
+      <IncomeForm @success="onIncomeAdded" />
+    </Modal>
+
+    <!-- Expense Modal -->
+    <Modal :show="showExpenseModal" title="Create New Expense" @close="showExpenseModal = false">
+      <ExpenseForm @success="onExpenseAdded" />
+    </Modal>
   </AppLayout>
 </template>
 
 <script setup lang="ts">
-import { defineProps } from 'vue';
+import { defineProps, ref, watch } from 'vue';
+import { useToast } from '@/composables/useToast';
+import { router } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import SummaryCard from '@/components/dashboard/SummaryCard.vue';
 import ActionButton from '@/components/dashboard/ActionButton.vue';
+import Modal from '@/components/ui/Modal.vue';
+import IncomeForm from '@/components/forms/IncomeForm.vue';
+import ExpenseForm from '@/components/forms/ExpenseForm.vue';
 
 defineProps<{
   monthlySummary: {
@@ -50,4 +67,31 @@ defineProps<{
   latestIncome: any | null;
   latestExpense: any | null;
 }>();
+
+const showIncomeModal = ref(false);
+const showExpenseModal = ref(false);
+const { toast } = useToast();
+
+// Debug: Log modal state changes
+watch(showIncomeModal, (newVal) => {
+  console.log('Income modal state:', newVal);
+});
+
+watch(showExpenseModal, (newVal) => {
+  console.log('Expense modal state:', newVal);
+});
+
+function onIncomeAdded() {
+  showIncomeModal.value = false;
+  toast('Income added successfully!', 'success');
+  // Reload the dashboard to get updated data
+  router.reload();
+}
+
+function onExpenseAdded() {
+  showExpenseModal.value = false;
+  toast('Expense added successfully!', 'success');
+  // Reload the dashboard to get updated data
+  router.reload();
+}
 </script>

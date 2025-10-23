@@ -18,10 +18,14 @@
     <footer class="fixed bottom-0 left-0 right-0 bg-white shadow md:hidden">
       <BottomNav />
     </footer>
+    
+    <!-- Toast Notifications -->
+    <Toast />
   </div>
 </template>
 
 <script setup lang="ts">
 import TopNav from '@/components/navigation/TopNav.vue';
 import BottomNav from '@/components/navigation/BottomNav.vue';
+import Toast from '@/components/ui/Toast.vue';
 </script>

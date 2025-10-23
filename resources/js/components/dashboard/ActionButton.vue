@@ -1,7 +1,9 @@
 <template>
   <div class="bg-white overflow-hidden shadow rounded-lg">
     <div class="px-4 py-5 sm:p-6">
-      <button :class="['w-full py-2 px-4 rounded-md text-white font-medium focus:outline-none focus:ring-2 focus:ring-offset-2', buttonColor || 'bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500']">
+      <button 
+        @click="$emit('click')"
+        :class="['w-full py-2 px-4 rounded-md text-white font-medium focus:outline-none focus:ring-2 focus:ring-offset-2', buttonColor || 'bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500']">
         {{ buttonText }}
       </button>
       
@@ -10,7 +12,7 @@
         <div class="mt-2 text-sm text-gray-900">
           <p><span class="font-medium">Amount:</span> {{ formatCurrency(latestTransaction.amount) }}</p>
           <p><span class="font-medium">Date:</span> {{ formatDate(latestTransaction.income_date || latestTransaction.expense_date) }}</p>
-          <p><span class="font-medium">By:</span> {{ latestTransaction.user?.name }}</p>
+          <p><span class="font-medium">By:</span> {{ latestTransaction.user?.name || 'Unknown' }}</p>
           <p v-if="latestTransaction.source"><span class="font-medium">Source:</span> {{ latestTransaction.source }}</p>
           <p v-if="latestTransaction.category"><span class="font-medium">Category:</span> {{ latestTransaction.category }}</p>
           <p v-if="latestTransaction.description"><span class="font-medium">Description:</span> {{ latestTransaction.description }}</p>
@@ -29,6 +31,8 @@ defineProps<{
   buttonColor?: string;
   latestTransaction: any | null;
 }>();
+
+defineEmits(['click']);
 
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat('en-US', {
