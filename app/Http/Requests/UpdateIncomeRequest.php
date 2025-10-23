@@ -23,3 +23,4 @@ class UpdateIncomeRequest extends FormRequest
         ];
     }
 }
+

@@ -88,3 +88,4 @@ class TransactionService
         return auth()->user()->household_id === $expense->household_id;
     }
 }
+
