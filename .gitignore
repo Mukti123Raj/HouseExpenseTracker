@@ -27,3 +27,7 @@ yarn-error.log
 /.vscode
 /.zed
 /requirements
+
+# PWA Files
+/public/serviceworker.js
+/public/generate-icons.html
