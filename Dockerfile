@@ -49,7 +49,8 @@ RUN npm run build
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# 13. *** NEW FIX: Create Supervisor log directory ***
+# 13. *** THIS IS THE MISSING FIX ***
+#     Create the log directory for Supervisor
 RUN mkdir -p /var/log/supervisor
 
 # 14. Configure Nginx & Supervisor
