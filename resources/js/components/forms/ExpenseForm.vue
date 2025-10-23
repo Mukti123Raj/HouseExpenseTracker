@@ -37,31 +37,47 @@
         class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
         :disabled="form.processing"
       >
-        {{ form.processing ? 'Saving...' : 'Save Expense' }}
+        {{ form.processing ? 'Saving...' : (isEditing ? 'Update Expense' : 'Save Expense') }}
       </button>
     </div>
   </form>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import InputField from '@/components/ui/InputField.vue';
 
+const props = defineProps<{
+  initialData?: any;
+}>();
+
 const emit = defineEmits(['close', 'success']);
 
+const isEditing = computed(() => !!props.initialData);
+
 const form = useForm({
-  amount: '',
-  category: '',
-  description: '',
-  expense_date: new Date().toISOString().slice(0, 10)
+  amount: props.initialData?.amount || '',
+  category: props.initialData?.category || '',
+  description: props.initialData?.description || '',
+  expense_date: props.initialData?.expense_date || new Date().toISOString().slice(0, 10)
 });
 
 const submit = () => {
-  form.post(route('expense.store'), {
-    onSuccess: () => {
-      emit('success');
-      emit('close');
-    }
-  });
+  if (isEditing.value) {
+    form.put(route('expense.update', props.initialData.id), {
+      onSuccess: () => {
+        emit('success');
+        emit('close');
+      }
+    });
+  } else {
+    form.post(route('expense.store'), {
+      onSuccess: () => {
+        emit('success');
+        emit('close');
+      }
+    });
+  }
 };
 </script>

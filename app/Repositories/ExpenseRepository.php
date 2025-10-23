@@ -34,4 +34,13 @@ class ExpenseRepository implements BaseRepository
         }
         return false;
     }
+
+    public function getByDateRange(int $householdId, string $startDate, string $endDate)
+    {
+        return Expense::where('household_id', $householdId)
+            ->whereBetween('expense_date', [$startDate, $endDate])
+            ->with('user:id,name')
+            ->orderBy('expense_date', 'desc')
+            ->get();
+    }
 }

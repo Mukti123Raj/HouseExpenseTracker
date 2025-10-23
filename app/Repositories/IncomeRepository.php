@@ -34,4 +34,13 @@ class IncomeRepository implements BaseRepository
         }
         return false;
     }
+
+    public function getByDateRange(int $householdId, string $startDate, string $endDate)
+    {
+        return Income::where('household_id', $householdId)
+            ->whereBetween('income_date', [$startDate, $endDate])
+            ->with('user:id,name')
+            ->orderBy('income_date', 'desc')
+            ->get();
+    }
 }
