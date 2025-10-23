@@ -47,7 +47,7 @@ RUN npm install
 RUN npm run build
 
 # 12. Set Production Permissions
-RUN chown -R www-data:www-data /var/www/html \
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 # 13. *** THIS IS THE MISSING FIX ***
