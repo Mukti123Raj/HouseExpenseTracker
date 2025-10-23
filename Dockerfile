@@ -29,14 +29,12 @@ RUN apk add --no-cache nodejs npm
 COPY . /var/www/html/
 
 # 7. Install PHP Dependencies (WITHOUT scripts)
-# This creates the vendor/autoload.php file but doesn't run artisan
 RUN composer install --no-dev --no-autoloader --no-scripts --no-interaction --no-progress
 
 # 8. Create autoloader
 RUN composer dump-autoload --optimize --no-scripts
 
 # 9. Set up .env file and generate key
-# This works now because vendor/autoload.php exists
 RUN cp .env.example .env
 RUN php artisan key:generate --ansi
 
@@ -51,10 +49,13 @@ RUN npm run build
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# 13. Configure Nginx & Supervisor
+# 13. *** NEW FIX: Create Supervisor log directory ***
+RUN mkdir -p /var/log/supervisor
+
+# 14. Configure Nginx & Supervisor
 COPY docker.nginx.conf /etc/nginx/http.d/default.conf
 COPY docker.supervisord.conf /etc/supervisord.conf
 
-# 14. Expose Port & Run
+# 15. Expose Port & Run
 EXPOSE 8080
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
